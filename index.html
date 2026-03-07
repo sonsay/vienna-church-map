@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Церковь Победа — Вена: Карта площадок</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        #map { width: 100vw; height: 100vh; }
+
+        .title-overlay {
+            position: fixed;
+            top: 12px;
+            left: 60px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(6px);
+            padding: 10px 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .title-overlay h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+        }
+        .title-overlay p {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .legend-box {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.94);
+            backdrop-filter: blur(6px);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 12px;
+            line-height: 1.7;
+            max-width: 240px;
+        }
+        .legend-box h3 {
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #1a1a2e;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 4px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .legend-section {
+            font-weight: 600;
+            margin-top: 8px;
+            margin-bottom: 2px;
+            color: #444;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .legend-district {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-rect {
+            width: 14px;
+            height: 10px;
+            flex-shrink: 0;
+            border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .leaflet-popup-content {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 280px;
+        }
+        .popup-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .popup-address {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .popup-details {
+            color: #333;
+            font-size: 12px;
+        }
+        .popup-tag {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .tag-hotel { background: #fee; color: #c0392b; }
+        .tag-venue { background: #eef; color: #2980b9; }
+        .tag-church { background: #efe; color: #27ae60; }
+        .tag-negotiation { background: #fef3e0; color: #e67e22; }
+        .tag-competitor { background: #eee; color: #333; }
+        .tag-rejected { background: #f5f5f5; color: #999; text-decoration: line-through; }
+        .tag-international { background: #fff8e1; color: #f57f17; }
+        .popup-link { display: block; margin-top: 4px; font-size: 11px; }
+        .popup-link a { color: #2980b9; text-decoration: none; }
+        .popup-link a:hover { text-decoration: underline; }
+        .popup-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-top: 4px; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <div class="title-overlay">
+        <h1>Церковь Победа — Вена: Карта площадок</h1>
+        <p>Обзор вариантов помещений по районам</p>
+    </div>
+
+    <div class="legend-box">
+        <h3>Легенда</h3>
+        <div class="legend-section">Маркеры площадок</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#cb2b3e;"></div> Отели</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2a81cb;"></div> Культурные центры, VHS</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2aad27;"></div> Церкви / приходские залы</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f0932b;"></div> В переговорах / осмотрен</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#999;"></div> Отклонённые площадки</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3d3d3d;"></div> Русскоязычные церкви</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#cab308;"></div> Международные церкви (DE/EN)</div>
+
+        <div class="legend-section">Транспорт</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#e20210;flex-shrink:0;border-radius:2px;"></div> U1</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#a762a4;flex-shrink:0;border-radius:2px;"></div> U2</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#ef7c00;flex-shrink:0;border-radius:2px;"></div> U3</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#009540;flex-shrink:0;border-radius:2px;"></div> U4</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#986b37;flex-shrink:0;border-radius:2px;"></div> U6</div>
+        <div class="legend-item"><div style="width:20px;height:3px;background:#d32f2f;flex-shrink:0;border-radius:2px;border-top:2px dashed #d32f2f;"></div> Трамваи (1, O, 5, 6, 71, D)</div>
+
+        <div class="legend-section">Рекомендуемые районы</div>
+        <div class="legend-district"><div class="legend-rect" style="background:rgba(220,50,50,0.3);"></div> 10 — Favoriten</div>
+        <div class="legend-district"><div class="legend-rect" style="background:rgba(50,50,220,0.3);"></div> 3 — Landstra&szlig;e</div>
+        <div class="legend-district"><div class="legend-rect" style="background:rgba(50,180,50,0.3);"></div> 5 — Margareten</div>
+        <div class="legend-district"><div class="legend-rect" style="background:rgba(140,50,180,0.3);"></div> 2 — Leopoldstadt</div>
+        <div class="legend-district"><div class="legend-rect" style="background:rgba(220,140,30,0.3);"></div> 15 — Rudolfsheim</div>
+    </div>
+
+    <script>
+        // Initialize map
+        const map = L.map('map', {
+            center: [48.195, 16.37],
+            zoom: 12,
+            zoomControl: true
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 20,
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // Colored marker icons
+        function markerIcon(color) {
+            const colors = {
+                red:    'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                blue:   'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                green:  'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                orange: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+                black:  'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png',
+                violet: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
+                grey:   'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
+                gold:   'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png'
+            };
+            return L.icon({
+                iconUrl: colors[color] || colors.blue,
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+        }
+
+        function popupHtml(title, address, details, tagText, tagClass) {
+            return `<div>
+                <div class="popup-title">${title}</div>
+                <div class="popup-address">${address}</div>
+                <div class="popup-details">${details}</div>
+                <span class="popup-tag ${tagClass}">${tagText}</span>
+            </div>`;
+        }
+
+        // ===== DISTRICT 10 - FAVORITEN =====
+        // Hotels (RED)
+        const venues = [
+            // D10 Hotels — GEOCODED coordinates
+            { lat: 48.1796, lng: 16.3627, color: 'red', title: 'Rainers Hotel ★★★★', addr: 'Gudrunstrasse 184, 1100 Wien', details: '11 залов, 96-98 театр<br>convention@rainer-hotels.at', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1825, lng: 16.3786, color: 'red', title: 'Hotel Zeitgeist ★★★★', addr: 'Sonnwendgasse 15, 1100 Wien', details: 'Room 2: 105м², 80-140 театр<br>welcome@zeitgeist-vienna.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1858, lng: 16.3793, color: 'red', title: 'Novotel Wien HBF ★★★★', addr: 'Canettistrasse 6, 1100 Wien', details: '8 залов, 60-90 театр<br>H8565@accor.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1824, lng: 16.3808, color: 'red', title: 'Hotel Schani HBF ★★★★', addr: 'Karl-Popper-Strasse 22, 1100 Wien', details: 'Rooftop до 90<br>hauptbahnhof@schanihotels.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1828, lng: 16.3786, color: 'red', title: 'A&O Hostel HBF', addr: 'Sonnwendgasse 11, 1100 Wien', details: 'Бюджет, конференц-залы<br>aohostels.com', tag: 'Отель', tagClass: 'tag-hotel' },
+
+            // D10 Non-hotel (BLUE)
+            { lat: 48.1830, lng: 16.3806, color: 'blue', title: 'novum Wien HBF', addr: 'Karl-Popper-Strasse 16, 1100 Wien', details: '164 театр, проф. PA<br>wien-hbf@novum.at', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1719, lng: 16.3902, color: 'blue', title: 'Caritas Ankerbrot', addr: 'Absberggasse 27, 1100 Wien', details: 'до 340, industrial-chic<br>ankersaal@kulturhaus-brotfabrik.at', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1730, lng: 16.3707, color: 'blue', title: 'VHS Favoriten', addr: 'Arthaberplatz 18, 1100 Wien', details: '120 театр<br>vz.favoriten@vhs.at', tag: 'Площадка', tagClass: 'tag-venue' },
+
+            // D10 In negotiation (ORANGE)
+            { lat: 48.1790, lng: 16.3860, color: 'orange', title: '★ Gleis 21 (В ПЕРЕГОВОРАХ)', addr: 'Bloch-Bauer-Promenade 22, 1100 Wien', details: '100 театр, ~€450-550/полдня<br>hello@gleis21.wien<br>Трамвай D прямо рядом!', tag: 'В переговорах', tagClass: 'tag-negotiation' },
+
+            // ===== DISTRICT 3 - LANDSTRASSE =====
+            { lat: 48.2103, lng: 16.3906, color: 'green', title: 'Pfarre St. Othmar «Othmarsaal»', addr: 'Kolonitzplatz 1, 1030 Wien', details: '130 + кафе 40<br>Сцена + свет/звук + кухня', tag: 'Приход', tagClass: 'tag-church' },
+            { lat: 48.1943, lng: 16.4056, color: 'blue', title: 'BFI Wien', addr: 'Alfred-Dallinger-Platz 1, 1030 Wien', details: '23 зала, пусто по выходным<br>bfi.wien', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1858, lng: 16.4043, color: 'red', title: 'Austria Trend Doppio ★★★★', addr: 'Rennweg 99, 1030 Wien', details: 'до 50<br>austria-trend.at', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.2050, lng: 16.3870, color: 'green', title: 'Pfarre Erlöserkirche', addr: '1030 Wien', details: '40-50<br>pfarre-erloeserkirche.at', tag: 'Приход', tagClass: 'tag-church' },
+
+            // ===== DISTRICT 5 - MARGARETEN =====
+            { lat: 48.1924, lng: 16.3549, color: 'red', title: 'Austria Trend Ananas ★★★★', addr: 'Rechte Wienzeile 93-95, 1050 Wien', details: 'Otto Wagner 80 театр, Adolf Loos 70<br>+43 1 546 20', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1870, lng: 16.3560, color: 'blue', title: 'Creative Cluster Turnsaal', addr: '1050 Wien', details: '150 театр<br>creativecluster.cc', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1957, lng: 16.3560, color: 'orange', title: 'Spektakel (ОСМОТРЕН — запасной)', addr: 'Hamburgerstrasse 14, 1050 Wien', details: '50-80, проф. сцена<br>~€320+', tag: 'Осмотрен', tagClass: 'tag-negotiation' },
+
+            // ===== DISTRICT 2 - LEOPOLDSTADT =====
+            { lat: 48.2144, lng: 16.3805, color: 'red', title: 'Hotel Stefanie ★★★★', addr: 'Taborstrasse 12, 1020 Wien', details: 'до 120 театр<br>jeniffer.kuba@schick-hotels.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.2130, lng: 16.4134, color: 'red', title: 'Courtyard Marriott Prater ★★★★', addr: 'Trabrennstrasse 4, 1020 Wien', details: '14 залов<br>info@cy-wien-messe.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.2115, lng: 16.4088, color: 'red', title: 'roomz Hotel Prater ★★★★', addr: 'Rotundenplatz 1, 1020 Wien', details: '13 залов, до 500<br>roomz-hotels.com', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.2190, lng: 16.3896, color: 'blue', title: 'VHS Praterstern', addr: 'Praterstern 1, 1020 Wien', details: 'Малый зал 90<br>+43 1 891 74-102 500', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.2088, lng: 16.3985, color: 'green', title: 'Pfarre Am Schüttel', addr: 'Böcklinstrasse 31, 1020 Wien', details: 'Запросить<br>+43 1 728 18 38', tag: 'Приход', tagClass: 'tag-church' },
+
+            // ===== DISTRICT 15 =====
+            { lat: 48.1982, lng: 16.3376, color: 'red', title: 'Mercure Westbahnhof ★★★★', addr: 'Felberstrasse 4, 1150 Wien', details: '6 залов, до 240<br>Accor', tag: 'Отель', tagClass: 'tag-hotel' },
+            { lat: 48.1864, lng: 16.3297, color: 'green', title: 'Altkatholische Heilandskirche', addr: 'Rauchfangkehrergasse 12, 1150 Wien', details: '90-140, €120/3ч<br>heilandskirche@altkatholiken.at', tag: 'Церковь', tagClass: 'tag-church' },
+            { lat: 48.1946, lng: 16.3377, color: 'blue', title: 'Studio Barada', addr: 'Robert-Hamerling-Gasse 1, 1150 Wien', details: '~80 (120м²)<br>barada.at', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1901, lng: 16.3248, color: 'blue', title: 'VHS Rudolfsheim', addr: 'Schwendergasse 41, 1150 Wien', details: 'Малый зал 85<br>vz.rudolfsheim@vhs.at', tag: 'Площадка', tagClass: 'tag-venue' },
+            { lat: 48.1878, lng: 16.3315, color: 'blue', title: 'Salon Sechshaus', addr: 'Sechshauser Str 48, 1150 Wien', details: '~40-50 (80м²)<br>salon-sechshaus.at', tag: 'Площадка', tagClass: 'tag-venue' },
+        ];
+
+        // Add venue markers — regular first, then orange/negotiation ON TOP
+        const regularVenues = venues.filter(v => v.color !== 'orange');
+        const priorityVenues = venues.filter(v => v.color === 'orange');
+
+        regularVenues.forEach(v => {
+            L.marker([v.lat, v.lng], { icon: markerIcon(v.color) })
+                .addTo(map)
+                .bindPopup(popupHtml(v.title, v.addr, v.details, v.tag, v.tagClass));
+        });
+
+        // Priority venues render last (on top) with higher z-index
+        priorityVenues.forEach(v => {
+            L.marker([v.lat, v.lng], { icon: markerIcon(v.color), zIndexOffset: 1000 })
+                .addTo(map)
+                .bindPopup(popupHtml(v.title, v.addr, v.details, v.tag, v.tagClass));
+        });
+
+        // ===== REJECTED / CHECKED VENUES (GREY) =====
+        const rejected = [
+            { lat: 48.2066, lng: 16.3905, color: 'grey', title: 'Das Packhaus — ОТКАЗ', addr: 'Marxergasse 24, 1030 Wien', details: 'Коворкинг + ивент-площадка<br><a href="https://daspackhaus.at" target="_blank">daspackhaus.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
+            { lat: 48.2001, lng: 16.3888, color: 'grey', title: 'Pauluskirche — ОТКАЗ', addr: 'Sebastianplatz 4, 1030 Wien', details: 'Евангелическая церковь<br><a href="https://pauluskirche.at" target="_blank">pauluskirche.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
+            { lat: 48.2006, lng: 16.3872, color: 'grey', title: 'Magdas Hotel — ОТКАЗ', addr: 'Ungargasse 38, 1030 Wien', details: 'Социальный отель<br><a href="https://magdas-hotel.at" target="_blank">magdas-hotel.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
+        ];
+
+        rejected.forEach(v => {
+            L.marker([v.lat, v.lng], { icon: markerIcon(v.color) })
+                .addTo(map)
+                .bindPopup(popupHtml(v.title, v.addr, v.details, v.tag, v.tagClass));
+        });
+
+        // ===== RUSSIAN-SPEAKING CHURCHES (BLACK) =====
+        const ruChurches = [
+            { lat: 48.1844, lng: 16.3665, name: 'Евангельская церковь Вены (Путь Жизни)', addr: 'Kriehubergasse 3, 1050 Wien', district: '5', website: 'https://evangelie.at', time: 'Вс 15:00' },
+            { lat: 48.1928, lng: 16.3526, name: 'MOGA Baptist / Экклезия', addr: 'Mollardgasse 35, 1060 Wien', district: '6', website: 'https://moga.at', time: 'Вс 15:00' },
+            { lat: 48.1997, lng: 16.3393, name: 'Без границ (ХВЕ)', addr: 'Kenyongasse 15, 3 эт., 1070 Wien', district: '7', website: null, time: 'Вс 18:15' },
+            { lat: 48.2379, lng: 16.4852, name: 'Christify (бывш. Источник жизни)', addr: 'Am Heidjöchl 6, 1220 Wien', district: '22', website: 'https://christify.at', time: 'Вс 13:30, пастор В. Чернецкий' },
+        ];
+
+        ruChurches.forEach(c => {
+            const link = c.website ? `<br><a href="${c.website}" target="_blank">${c.website.replace('https://','')}</a>` : '';
+            L.marker([c.lat, c.lng], { icon: markerIcon('black') })
+                .addTo(map)
+                .bindPopup(popupHtml(
+                    c.name,
+                    c.addr + ` (район ${c.district})`,
+                    c.time + link,
+                    'Рус. церковь',
+                    'tag-competitor'
+                ));
+        });
+
+        // ===== INTERNATIONAL CHURCHES - DE/EN (GOLD) =====
+        const intChurches = [
+            { lat: 48.2007, lng: 16.3752, name: 'Hillsong Wien', addr: 'Schwarzenbergplatz 3, 1010 Wien', details: 'Вс 11:00, немецкий + англ. перевод', district: '1', website: 'https://hillsong.com/austria' },
+            { lat: 48.1888, lng: 16.4112, name: 'VCC — Vienna Christian Center', addr: 'Baumgasse 72, 1030 Wien', details: 'Вс 9:00 + 10:30, многонац.', district: '3', website: 'https://viennachristiancenter.at' },
+            { lat: 48.1859, lng: 16.4214, name: 'VCC — JesusZentrum', addr: 'Guglgasse 11, 1110 Wien', details: 'Вторая локация VCC', district: '11', website: 'https://viennachristiancenter.at' },
+            { lat: 48.2061, lng: 16.3506, name: 'ICF Wien', addr: 'Lerchenfelder Str. 35, 1070 Wien', details: 'Вс 10:00 + 12:00, англ. перевод', district: '7', website: 'https://icf-wien.at' },
+            { lat: 48.1761, lng: 16.3698, name: 'LIFE Church Wien', addr: 'Leebgasse 34, 1100 Wien', details: 'Сб 16:30! Немецкий/англ.<br>НЕ конкурент (не русскояз.)', district: '10', website: 'https://lifechurch.at/wien' },
+        ];
+
+        intChurches.forEach(c => {
+            const link = `<br><a href="${c.website}" target="_blank">${c.website.replace('https://','')}</a>`;
+            L.marker([c.lat, c.lng], { icon: markerIcon('gold') })
+                .addTo(map)
+                .bindPopup(popupHtml(
+                    c.name,
+                    c.addr + ` (район ${c.district})`,
+                    c.details + link,
+                    'Междунар. церковь',
+                    'tag-international'
+                ));
+        });
+
+        // ===== DISTRICT POLYGONS =====
+        // Approximate boundaries for highlighted districts
+
+        // District 10 - Favoriten (red)
+        L.polygon([
+            [48.1580, 16.3450], [48.1580, 16.3950], [48.1650, 16.4100],
+            [48.1750, 16.4150], [48.1850, 16.4050], [48.1900, 16.3900],
+            [48.1880, 16.3700], [48.1870, 16.3600], [48.1860, 16.3500],
+            [48.1780, 16.3420], [48.1700, 16.3400], [48.1630, 16.3430]
+        ], {
+            color: '#dc3232', weight: 2, opacity: 0.5,
+            fillColor: '#dc3232', fillOpacity: 0.08
+        }).addTo(map).bindPopup('<b>Район 10 — Favoriten</b><br>9 площадок');
+
+        // District 3 - Landstrasse (blue)
+        L.polygon([
+            [48.1880, 16.3750], [48.1880, 16.3900], [48.1900, 16.4100],
+            [48.1950, 16.4200], [48.2050, 16.4150], [48.2100, 16.4000],
+            [48.2080, 16.3850], [48.2050, 16.3750], [48.2000, 16.3700],
+            [48.1950, 16.3700], [48.1920, 16.3720]
+        ], {
+            color: '#3232dc', weight: 2, opacity: 0.5,
+            fillColor: '#3232dc', fillOpacity: 0.08
+        }).addTo(map).bindPopup('<b>Район 3 — Landstraße</b><br>4 площадки');
+
+        // District 5 - Margareten (green)
+        L.polygon([
+            [48.1840, 16.3450], [48.1840, 16.3600], [48.1870, 16.3650],
+            [48.1930, 16.3650], [48.1960, 16.3600], [48.1960, 16.3500],
+            [48.1940, 16.3420], [48.1900, 16.3400], [48.1860, 16.3420]
+        ], {
+            color: '#32b432', weight: 2, opacity: 0.5,
+            fillColor: '#32b432', fillOpacity: 0.08
+        }).addTo(map).bindPopup('<b>Район 5 — Margareten</b><br>3 площадки');
+
+        // District 2 - Leopoldstadt (purple)
+        L.polygon([
+            [48.2050, 16.3700], [48.2050, 16.3850], [48.2080, 16.4000],
+            [48.2100, 16.4200], [48.2200, 16.4300], [48.2350, 16.4250],
+            [48.2400, 16.4100], [48.2350, 16.3900], [48.2250, 16.3750],
+            [48.2180, 16.3680], [48.2120, 16.3670]
+        ], {
+            color: '#8c32b4', weight: 2, opacity: 0.5,
+            fillColor: '#8c32b4', fillOpacity: 0.08
+        }).addTo(map).bindPopup('<b>Район 2 — Leopoldstadt</b><br>6 площадок');
+
+        // District 15 - Rudolfsheim-Fünfhaus (orange)
+        L.polygon([
+            [48.1880, 16.3180], [48.1880, 16.3350], [48.1920, 16.3420],
+            [48.1960, 16.3440], [48.2000, 16.3420], [48.2020, 16.3350],
+            [48.2010, 16.3200], [48.1970, 16.3150], [48.1930, 16.3140],
+            [48.1900, 16.3150]
+        ], {
+            color: '#dc8c1e', weight: 2, opacity: 0.5,
+            fillColor: '#dc8c1e', fillOpacity: 0.08
+        }).addTo(map).bindPopup('<b>Район 15 — Rudolfsheim-Fünfhaus</b><br>5 площадок');
+
+        // ===== U-BAHN LINES =====
+        const uLineStyle = { weight: 4, opacity: 0.7 };
+
+        // U1 (Red) — Oberlaa → Leopoldau
+        const u1 = [
+            [48.1420, 16.3990], // Oberlaa
+            [48.1530, 16.3910], // Neulaa
+            [48.1600, 16.3880], // Altes Landgut
+            [48.1660, 16.3840], // Alaudagasse
+            [48.1715, 16.3790], // Troststraße
+            [48.1745, 16.3780], // Reumannplatz
+            [48.1770, 16.3770], // Keplerplatz
+            [48.1830, 16.3750], // Südtiroler Platz/Hbf
+            [48.1870, 16.3730], // Hauptbahnhof
+            [48.1960, 16.3690], // Taubstummengasse
+            [48.2005, 16.3690], // Karlsplatz
+            [48.2085, 16.3730], // Stephansplatz
+            [48.2115, 16.3770], // Schwedenplatz
+            [48.2140, 16.3830], // Nestroyplatz
+            [48.2175, 16.3890], // Praterstern
+            [48.2200, 16.3950], // Vorgartenstraße
+            [48.2270, 16.4090], // Donauinsel
+            [48.2350, 16.4180], // Kaisermühlen VIC
+            [48.2500, 16.4280], // Alte Donau
+            [48.2580, 16.4370], // Kagran
+            [48.2650, 16.4430], // Kagraner Platz
+            [48.2720, 16.4470], // Rennbahnweg
+            [48.2780, 16.4500], // Aderklaaer Str.
+            [48.2830, 16.4530], // Großfeldsiedlung
+            [48.2880, 16.4560], // Leopoldau
+        ];
+        L.polyline(u1, {...uLineStyle, color: '#e20210'}).addTo(map);
+
+        // U2 (Purple) — Schottentor → Seestadt (traditional route)
+        const u2 = [
+            [48.1890, 16.3680], // Matzleinsdorfer Platz (new southern extension)
+            [48.1930, 16.3570], // Pilgramgasse (new)
+            [48.1985, 16.3590], // Museumsquartier/Neubaugasse area
+            [48.2030, 16.3580], // Volkstheater (new connection)
+            [48.2070, 16.3610], // Rathaus
+            [48.2110, 16.3630], // Schottentor
+            [48.2150, 16.3720], // Schottenring
+            [48.2170, 16.3830], // Taborstraße
+            [48.2175, 16.3890], // Praterstern
+            [48.2130, 16.4050], // Messe-Prater
+            [48.2100, 16.4130], // Krieau
+            [48.2080, 16.4220], // Stadion
+            [48.2100, 16.4380], // Donaumarina
+            [48.2150, 16.4520], // Donaustadtbrücke
+            [48.2230, 16.4650], // Stadlau
+            [48.2280, 16.4780], // Hardeggasse
+            [48.2290, 16.4920], // Donauspital
+            [48.2310, 16.5050], // Aspernstraße
+            [48.2285, 16.5200], // Seestadt
+        ];
+        L.polyline(u2, {...uLineStyle, color: '#a762a4'}).addTo(map);
+
+        // U3 (Orange) — Ottakring → Simmering
+        const u3 = [
+            [48.2110, 16.3120], // Ottakring
+            [48.2070, 16.3170], // Kendlerstraße
+            [48.2030, 16.3210], // Hütteldorfer Straße
+            [48.2000, 16.3250], // Johnstraße
+            [48.1980, 16.3300], // Schweglerstraße
+            [48.1965, 16.3370], // Westbahnhof
+            [48.1990, 16.3460], // Zieglergasse
+            [48.2010, 16.3530], // Neubaugasse
+            [48.2030, 16.3580], // Volkstheater
+            [48.2060, 16.3650], // Herrengasse
+            [48.2085, 16.3730], // Stephansplatz
+            [48.2070, 16.3800], // Stubentor
+            [48.2035, 16.3850], // Landstraße
+            [48.2000, 16.3880], // Rochusgasse
+            [48.1960, 16.3910], // Kardinal-Nagl-Platz
+            [48.1920, 16.3950], // Schlachthausgasse
+            [48.1890, 16.3980], // Erdberg
+            [48.1850, 16.4040], // Gasometer
+            [48.1810, 16.4100], // Zippererstraße
+            [48.1760, 16.4140], // Enkplatz
+            [48.1700, 16.4180], // Simmering
+        ];
+        L.polyline(u3, {...uLineStyle, color: '#ef7c00'}).addTo(map);
+
+        // U4 (Green) — Hütteldorf → Heiligenstadt
+        const u4 = [
+            [48.1970, 16.2600], // Hütteldorf
+            [48.1930, 16.2780], // Ober St. Veit
+            [48.1900, 16.2900], // Unter St. Veit
+            [48.1880, 16.3000], // Braunschweiggasse
+            [48.1870, 16.3080], // Hietzing
+            [48.1880, 16.3180], // Schönbrunn
+            [48.1890, 16.3280], // Meidling Hst.
+            [48.1890, 16.3370], // Längenfeldgasse
+            [48.1900, 16.3440], // Margaretengürtel
+            [48.1930, 16.3520], // Pilgramgasse
+            [48.1960, 16.3580], // Kettenbrückengasse
+            [48.2005, 16.3690], // Karlsplatz
+            [48.2030, 16.3740], // Stadtpark
+            [48.2035, 16.3850], // Landstraße
+            [48.2070, 16.3820], // Wien Mitte
+            [48.2115, 16.3770], // Schwedenplatz
+            [48.2150, 16.3720], // Schottenring
+            [48.2185, 16.3665], // Rossauer Lände
+            [48.2220, 16.3615], // Friedensbrücke
+            [48.2300, 16.3590], // Spittelau
+            [48.2450, 16.3660], // Heiligenstadt
+        ];
+        L.polyline(u4, {...uLineStyle, color: '#009540'}).addTo(map);
+
+        // U6 (Brown) — Siebenhirten → Floridsdorf
+        const u6 = [
+            [48.1340, 16.3180], // Siebenhirten
+            [48.1420, 16.3210], // Perfektastraße
+            [48.1480, 16.3230], // Erlaaer Straße
+            [48.1550, 16.3250], // Alterlaa
+            [48.1620, 16.3270], // Am Schöpfwerk
+            [48.1680, 16.3290], // Tscherttegasse
+            [48.1760, 16.3320], // Philadelphiabrücke
+            [48.1890, 16.3370], // Längenfeldgasse
+            [48.1920, 16.3400], // Gumpendorfer Str.
+            [48.1965, 16.3370], // Westbahnhof
+            [48.2005, 16.3380], // Burggasse/Stadthalle
+            [48.2040, 16.3400], // Thaliastraße
+            [48.2075, 16.3430], // Josefstädter Str.
+            [48.2110, 16.3470], // Alser Straße
+            [48.2150, 16.3510], // Michelbeuern-AKH
+            [48.2185, 16.3540], // Währinger Straße
+            [48.2220, 16.3560], // Nußdorfer Straße
+            [48.2300, 16.3590], // Spittelau
+            [48.2340, 16.3640], // Jägerstraße
+            [48.2380, 16.3700], // Dresdner Straße
+            [48.2420, 16.3780], // Handelskai
+            [48.2500, 16.3870], // Neue Donau
+            [48.2560, 16.3960], // Floridsdorf
+        ];
+        L.polyline(u6, {...uLineStyle, color: '#986b37'}).addTo(map);
+
+        // ===== U-BAHN STATIONS (key interchanges + near our districts) =====
+        const uStations = [
+            // Major interchanges
+            { lat: 48.2005, lng: 16.3690, name: 'Karlsplatz', lines: 'U1 U2 U4' },
+            { lat: 48.2085, lng: 16.3730, name: 'Stephansplatz', lines: 'U1 U3' },
+            { lat: 48.2115, lng: 16.3770, name: 'Schwedenplatz', lines: 'U1 U4' },
+            { lat: 48.2175, lng: 16.3890, name: 'Praterstern', lines: 'U1 U2' },
+            { lat: 48.2035, lng: 16.3850, name: 'Landstraße', lines: 'U3 U4' },
+            { lat: 48.1965, lng: 16.3370, name: 'Westbahnhof', lines: 'U3 U6' },
+            { lat: 48.1890, lng: 16.3370, name: 'Längenfeldgasse', lines: 'U4 U6' },
+            { lat: 48.2300, lng: 16.3590, name: 'Spittelau', lines: 'U4 U6' },
+            { lat: 48.2030, lng: 16.3580, name: 'Volkstheater', lines: 'U2 U3' },
+            { lat: 48.2150, lng: 16.3720, name: 'Schottenring', lines: 'U2 U4' },
+
+            // D10 stations
+            { lat: 48.1830, lng: 16.3750, name: 'Südtiroler Pl./Hbf', lines: 'U1' },
+            { lat: 48.1770, lng: 16.3770, name: 'Keplerplatz', lines: 'U1' },
+            { lat: 48.1745, lng: 16.3780, name: 'Reumannplatz', lines: 'U1' },
+            { lat: 48.1715, lng: 16.3790, name: 'Troststraße', lines: 'U1' },
+
+            // D3 stations
+            { lat: 48.2000, lng: 16.3880, name: 'Rochusgasse', lines: 'U3' },
+            { lat: 48.1960, lng: 16.3910, name: 'Kardinal-Nagl-Pl.', lines: 'U3' },
+            { lat: 48.1920, lng: 16.3950, name: 'Schlachthausgasse', lines: 'U3' },
+            { lat: 48.1890, lng: 16.3980, name: 'Erdberg', lines: 'U3' },
+
+            // D5 stations
+            { lat: 48.1930, lng: 16.3520, name: 'Pilgramgasse', lines: 'U4' },
+            { lat: 48.1960, lng: 16.3580, name: 'Kettenbrückengasse', lines: 'U4' },
+            { lat: 48.1900, lng: 16.3440, name: 'Margaretengürtel', lines: 'U4' },
+
+            // D2 stations
+            { lat: 48.2170, lng: 16.3830, name: 'Taborstraße', lines: 'U2' },
+            { lat: 48.2140, lng: 16.3830, name: 'Nestroyplatz', lines: 'U1' },
+
+            // D15 stations
+            { lat: 48.2005, lng: 16.3380, name: 'Burggasse/Stadthalle', lines: 'U6' },
+            { lat: 48.1920, lng: 16.3400, name: 'Gumpendorfer Str.', lines: 'U6' },
+        ];
+
+        uStations.forEach(s => {
+            L.circleMarker([s.lat, s.lng], {
+                radius: 4, color: '#fff', weight: 1.5,
+                fillColor: '#333', fillOpacity: 0.9
+            }).addTo(map).bindTooltip(s.name, {
+                permanent: false, direction: 'top',
+                className: 'station-tooltip', offset: [0, -6]
+            }).bindPopup(`<b>${s.name}</b><br>${s.lines}`);
+        });
+
+        // ===== KEY TRAM LINES (dashed, grey) =====
+        const tramStyle = { weight: 4, opacity: 0.75, dashArray: '10,6', color: '#d32f2f' };
+
+        // Tram 1 — through D10 (Favoritenstraße) + D2
+        L.polyline([
+            [48.1560, 16.3830], // Stefan-Fadinger-Pl.
+            [48.1660, 16.3810], // Quellenstraße
+            [48.1745, 16.3780], // Reumannplatz
+            [48.1830, 16.3750], // Südtiroler Platz
+            [48.1960, 16.3690], // Taubstummengasse
+            [48.2005, 16.3690], // Karlsplatz / Ring
+            [48.2085, 16.3730], // Stephansplatz area
+            [48.2115, 16.3770], // Schwedenplatz
+            [48.2175, 16.3890], // Praterstern
+        ], {...tramStyle, color: '#d32f2f'}).addTo(map).bindPopup('<b>Трамвай 1</b><br>Favoriten → Karlsplatz → Praterstern');
+
+        // Tram O — D3 + D10 connector
+        L.polyline([
+            [48.1745, 16.3780], // Reumannplatz
+            [48.1800, 16.3820], // Quellenplatz
+            [48.1860, 16.3870], // Gudrunstraße
+            [48.1920, 16.3950], // Schlachthausgasse
+            [48.1960, 16.3910], // Kardinal-Nagl-Platz
+            [48.2000, 16.3880], // Rochusgasse
+            [48.2035, 16.3850], // Landstraße
+            [48.2070, 16.3820], // Wien Mitte
+            [48.2115, 16.3770], // Schwedenplatz
+            [48.2175, 16.3890], // Praterstern
+        ], {...tramStyle, color: '#1565c0'}).addTo(map).bindPopup('<b>Трамвай O</b><br>Reumannplatz → D3 → Praterstern');
+
+        // Tram 6 — through D15 along Gürtel → D5
+        L.polyline([
+            [48.2110, 16.3120], // Ottakring
+            [48.2005, 16.3380], // Burggasse
+            [48.1965, 16.3370], // Westbahnhof
+            [48.1920, 16.3400], // Gumpendorfer Str
+            [48.1890, 16.3370], // Längenfeldgasse
+            [48.1830, 16.3340], // Meidling
+        ], {...tramStyle, color: '#6a1b9a'}).addTo(map).bindPopup('<b>Трамвай 6</b><br>Ottakring → Westbahnhof → Meidling (Гюртель)');
+
+        // Tram 71 — through D3 (Rennweg)
+        L.polyline([
+            [48.2070, 16.3820], // Wien Mitte
+            [48.2035, 16.3850], // Landstraße
+            [48.1980, 16.3900], // Rennweg area
+            [48.1920, 16.3950], // Schlachthausg.
+            [48.1860, 16.3990], // St. Marx
+            [48.1780, 16.4060], // Zentralfriedhof direction
+        ], {...tramStyle, color: '#2e7d32'}).addTo(map).bindPopup('<b>Трамвай 71</b><br>Wien Mitte → Rennweg → Zentralfriedhof');
+
+        // Tram 5 — through D2 (Praterstern → north)
+        L.polyline([
+            [48.1965, 16.3370], // Westbahnhof
+            [48.2010, 16.3530], // Neubaugasse area
+            [48.2060, 16.3650], // Rathaus
+            [48.2110, 16.3630], // Schottentor
+            [48.2150, 16.3720], // Schottenring
+            [48.2175, 16.3890], // Praterstern
+        ], {...tramStyle, color: '#f57f17'}).addTo(map).bindPopup('<b>Трамвай 5</b><br>Westbahnhof → Rathaus → Praterstern');
+
+        // Tram D — through Sonnwendviertel (near Gleis 21!) → Ring → Nußdorf
+        L.polyline([
+            [48.1680, 16.3855], // Absberggasse south
+            [48.1740, 16.3830], // Quellenplatz
+            [48.1790, 16.3810], // Gudrunstraße
+            [48.1830, 16.3790], // Sonnwendviertel / Helmut-Zilk-Park ← GLEIS 21!
+            [48.1860, 16.3760], // Alfred-Adler-Str.
+            [48.1900, 16.3730], // Südtiroler Platz/Hbf
+            [48.1960, 16.3690], // Taubstummengasse
+            [48.2005, 16.3690], // Karlsplatz
+            [48.2040, 16.3680], // Oper / Ring
+            [48.2085, 16.3680], // Burgring
+            [48.2110, 16.3630], // Schottentor
+            [48.2150, 16.3600], // Universität
+            [48.2220, 16.3600], // Bauernfeldplatz
+            [48.2350, 16.3620], // Nußdorf
+        ], {...tramStyle, color: '#e44', weight: 5, opacity: 0.85}).addTo(map).bindPopup('<b>Трамвай D</b><br>Absberggasse → Sonnwendviertel → Südtiroler Pl. → Ring → Nußdorf<br><i>Проходит прямо мимо Gleis 21!</i>');
+    </script>
+</body>
+</html>
