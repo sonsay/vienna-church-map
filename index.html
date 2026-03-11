@@ -145,12 +145,10 @@
 
     <div class="legend-box">
         <h3>Легенда</h3>
-        <div class="legend-section">Приоритеты (район + транспорт + тип)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#2aad27;"></div> [P1] HBF-кластер — отели у вокзала</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#f0932b;"></div> В переговорах / осмотрен</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#2a81cb;"></div> [P2] Хорошие варианты — отели, отправлять</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#7b3fa0;"></div> [P3] Резерв (VHS / мелкие минусы)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#999;"></div> Не подходят / отказ</div>
+        <div class="legend-section">Статус площадок</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f0932b;"></div> В работе (письмо/WhatsApp отправлено)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2a81cb;"></div> Новая волна (голубой) — отправлять</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#999;"></div> Отработано / отказ / не подходит</div>
         <div class="legend-item"><div class="legend-dot" style="background:#3d3d3d;"></div> Русскоязычные церкви</div>
         <div class="legend-item"><div class="legend-dot" style="background:#cab308;"></div> Международные церкви (DE/EN)</div>
 
@@ -215,38 +213,45 @@
             </div>`;
         }
 
-        // ===== VENUES — ПРИОРИТИЗАЦИЯ ПО: район + транспорт + вместимость + тип =====
+        // ===== VENUES =====
         const venues = [
-            // ═══ P1 — HBF-КЛАСТЕР (D10, U1+трамD+ж/д из Братиславы, отели) ═══
-            { lat: 48.1825, lng: 16.3786, color: 'green', title: '[P1] Hotel Zeitgeist ★★★★', addr: 'Sonnwendgasse 15, 1100 Wien', details: '80-140 театр, 105м² | U1+трам D 2мин<br>welcome@zeitgeist-vienna.com', tag: 'P1 Отель · HBF', tagClass: 'tag-hotel' },
-            { lat: 48.1858, lng: 16.3793, color: 'green', title: '[P1] Novotel Wien HBF ★★★★', addr: 'Canettistrasse 6, 1100 Wien', details: '60-90 театр, 8 залов | U1+трам D 2мин<br>H8565@accor.com', tag: 'P1 Отель · HBF', tagClass: 'tag-hotel' },
-            { lat: 48.1824, lng: 16.3808, color: 'green', title: '[P1] Hotel Schani HBF ★★★★', addr: 'Karl-Popper-Strasse 22, 1100 Wien', details: 'Rooftop до 90 | U1+трам D 2мин<br>hauptbahnhof@schanihotels.com', tag: 'P1 Отель · HBF', tagClass: 'tag-hotel' },
+            // ═══ В РАБОТЕ — письма/WhatsApp отправлены, ждём ответ (ORANGE) ═══
+            { lat: 48.1720, lng: 16.3570, color: 'orange', title: '★ Evangeliumsgemeinde Wien (WhatsApp!)', addr: 'Quellenstrasse 156, 1100 Wien', details: 'Фрикирхе BEG, ищут субарендатора!<br>Зал + детская + кухня + фойе<br>Пастор Ewald Ring', tag: 'WhatsApp отправлен', tagClass: 'tag-negotiation' },
+            { lat: 48.1862, lng: 16.3345, color: 'orange', title: '★ ÖJAB Wolfganggasse + Hotel Rudy', addr: 'Wolfganggasse, 1120 Wien', details: 'Eventsaal 83м²/80чел (136" экран)<br>или Bruno 63м²/60чел (98" экран)<br>office@oejab.at', tag: 'Email отправлен', tagClass: 'tag-negotiation' },
+            { lat: 48.1700, lng: 16.4180, color: 'orange', title: '★ JUFA Hotel Wien City', addr: 'Hoefftgasse 7, 1110 Wien', details: '7 залов (61-364м²) | Simmering<br>info@jufahotels.com', tag: 'Email отправлен', tagClass: 'tag-negotiation' },
+            { lat: 48.1690, lng: 16.4090, color: 'orange', title: '★ SimmCity Festsaal', addr: 'Simmeringer Hauptstr. 96A, 1110 Wien', details: 'Festsaal Zentrum Simmering<br>office@simmcity.at', tag: 'Email отправлен', tagClass: 'tag-negotiation' },
 
-            // ═══ В ПЕРЕГОВОРАХ ═══
-            { lat: 48.1790, lng: 16.3860, color: 'orange', title: '★ Gleis 21 (В ПЕРЕГОВОРАХ)', addr: 'Bloch-Bauer-Promenade 22, 1100 Wien', details: '100 театр, ~€450-550/полдня | трам D<br>hello@gleis21.wien', tag: 'В переговорах', tagClass: 'tag-negotiation' },
-            { lat: 48.1957, lng: 16.3560, color: 'orange', title: 'Spektakel (ОСМОТРЕН — запасной)', addr: 'Hamburgerstrasse 14, 1050 Wien', details: '50-80, проф. сцена, потрёпан | U4 5мин<br>~€320+', tag: 'Осмотрен', tagClass: 'tag-negotiation' },
+            // ═══ НОВАЯ ВОЛНА — голубой, отправлять (BLUE) ═══
+            { lat: 48.2280, lng: 16.3590, color: 'blue', title: '[NEW] Kolpinghaus Alsergrund', addr: 'Althanstrasse 51, 1090 Wien', details: 'до 300 (делится), сцена, PA, экран<br>m.schweiger@kolping-alsergrund.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.2330, lng: 16.3380, color: 'blue', title: '[NEW] Kolpinghaus Waehring', addr: '1180 Wien (у U6)', details: '100 чел, 200м², проектор, гибкие стены<br>m.schweiger@kolping-alsergrund.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.1920, lng: 16.3480, color: 'blue', title: '[NEW] Kolpinghaus Wien-Zentral', addr: 'Gumpendorfer Str. 39, 1060 Wien', details: '80 чел, 120м², семинар-центр<br>office@kolping-wien-zentral.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.2067, lng: 16.3730, color: 'blue', title: '[NEW] OeTK Festsaal (центр!)', addr: 'Baeckerstrasse 16, 1010 Wien', details: '~100 чел, сцена, PA, гигантский экран<br>zentrale@oetk.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.1990, lng: 16.3210, color: 'blue', title: '[NEW] Event-Wien', addr: 'Huetteldorfer Str. 74, 1150 Wien', details: '40-60 чел, 2 проектора, PA, 3 микро<br>€280/полдня | office@event-wien.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.2240, lng: 16.3560, color: 'blue', title: '[NEW] Albert Schweitzer Haus', addr: 'Schwarzspanierstr. 13, 1090 Wien', details: 'Диакония, Капелла 99м²/60чел<br>или Гроссер Зал до 180<br>office@albert-schweitzer-haus.at', tag: 'Волна 4', tagClass: 'tag-venue' },
+            { lat: 48.1719, lng: 16.3902, color: 'blue', title: '[NEW] Ankersaal/Brotfabrik (D10!)', addr: 'Absberggasse 27, 1100 Wien', details: '380м² + семинаррауме, High-End AV<br>ankersaal@kulturhaus-brotfabrik.at', tag: 'Волна 4 · Favoriten!', tagClass: 'tag-venue' },
+            { lat: 48.2230, lng: 16.3270, color: 'blue', title: '[NEW] Wiener Metropol', addr: 'Hernalser Hauptstr., 1170 Wien', details: 'Малый зал ~100 чел, сцена, техник вкл.<br>gastro@wiener-metropol.at', tag: 'Волна 4', tagClass: 'tag-venue' },
 
-            // ═══ P2 — ХОРОШИЕ ВАРИАНТЫ (отели, правильная вместимость, транспорт ОК) ═══
-            { lat: 48.1796, lng: 16.3627, color: 'blue', title: '[P2] Rainers Hotel ★★★★', addr: 'Gudrunstrasse 184, 1100 Wien', details: '96-98 театр, 11 залов | U1 Troststr. ~10мин<br>convention@rainer-hotels.at', tag: 'P2 Отель · D10', tagClass: 'tag-hotel' },
-            { lat: 48.1943, lng: 16.4056, color: 'grey', title: '[skip] BFI Wien — сайт не работает', addr: 'Alfred-Dallinger-Platz 1, 1030 Wien', details: '23 зала, пусто по выходным | U3 Schlachthausg. 3мин<br>Сайт bfi.wien недоступен', tag: 'Недоступен', tagClass: 'tag-rejected' },
-            { lat: 48.1924, lng: 16.3549, color: 'blue', title: '[P2] Austria Trend Ananas ★★★★', addr: 'Rechte Wienzeile 93-95, 1050 Wien', details: '70-80 театр | U4 Kettenbrücke 3мин<br>+43 1 546 20', tag: 'P2 Отель · D5', tagClass: 'tag-hotel' },
-            { lat: 48.2144, lng: 16.3805, color: 'blue', title: '[P2] Hotel Stefanie ★★★★', addr: 'Taborstrasse 12, 1020 Wien', details: 'до 120 театр | U2 Taborstr. 2мин<br>jeniffer.kuba@schick-hotels.com', tag: 'P2 Отель · D2', tagClass: 'tag-hotel' },
-
-            // ═══ P3 — РЕЗЕРВ (VHS неизвестно, или мелкие проблемы) ═══
-            { lat: 48.1730, lng: 16.3707, color: 'grey', title: '[skip] VHS Favoriten — великоват (120)', addr: 'Arthaberplatz 18, 1100 Wien', details: '120 театр (великоват) | U1 Keplerpl. 5мин<br>vz.favoriten@vhs.at', tag: 'Великоват + VHS риск', tagClass: 'tag-rejected' },
-            { lat: 48.2190, lng: 16.3896, color: 'grey', title: '[skip] VHS Praterstern — VHS риск', addr: 'Praterstern 1, 1020 Wien', details: '90 театр | U1+U2 Praterstern 1мин<br>+43 1 891 74-102 500', tag: 'VHS риск', tagClass: 'tag-rejected' },
-            { lat: 48.1982, lng: 16.3376, color: 'violet', title: '[P3] Mercure Westbahnhof ★★★★', addr: 'Felberstrasse 4, 1150 Wien', details: '6 залов, до 240 (дорого?) | U3+U6 Westbf<br>Accor', tag: 'P3 Отель · D15', tagClass: 'tag-hotel' },
-            { lat: 48.1828, lng: 16.3786, color: 'violet', title: '[P3] A&O Hostel HBF', addr: 'Sonnwendgasse 11, 1100 Wien', details: 'Бюджет, качество? | U1+трам D<br>aohostels.com', tag: 'P3 Хостел · HBF', tagClass: 'tag-venue' },
-            { lat: 48.1830, lng: 16.3806, color: 'violet', title: '[P3] novum Wien HBF', addr: 'Karl-Popper-Strasse 16, 1100 Wien', details: '164 театр — великоват | U1+трам D<br>wien-hbf@novum.at', tag: 'P3 Великоват · HBF', tagClass: 'tag-venue' },
-            { lat: 48.1946, lng: 16.3377, color: 'grey', title: '[skip] Studio Barada — танцстудия, нет стульев', addr: 'Robert-Hamerling-Gasse 1, 1150 Wien', details: 'Танцстудия 120м², паркет, зеркала, нет стульев | U6 рядом<br>barada.at', tag: 'Не подходит', tagClass: 'tag-rejected' },
-            { lat: 48.1858, lng: 16.4043, color: 'violet', title: '[P3] Austria Trend Doppio ★★★★', addr: 'Rennweg 99, 1030 Wien', details: 'до 50 — маловат | трам 71<br>austria-trend.at', tag: 'P3 Маловат · D3', tagClass: 'tag-hotel' },
-            { lat: 48.1901, lng: 16.3248, color: 'grey', title: '[skip] VHS Rudolfsheim — D15 далеко + VHS риск', addr: 'Schwendergasse 41, 1150 Wien', details: '85 театр | U6 5мин<br>vz.rudolfsheim@vhs.at', tag: 'Далеко + VHS риск', tagClass: 'tag-rejected' },
-
-            // ═══ SKIP — НЕ ПОДХОДЯТ ═══
-            { lat: 48.1719, lng: 16.3902, color: 'grey', title: '[skip] Caritas Ankerbrot', addr: 'Absberggasse 27, 1100 Wien', details: 'до 340 — слишком большой', tag: 'Великоват', tagClass: 'tag-rejected' },
-            { lat: 48.2130, lng: 16.4134, color: 'grey', title: '[skip] Courtyard Marriott', addr: 'Trabrennstrasse 4, 1020 Wien', details: 'Marriott — дорого для €500', tag: 'Дорого', tagClass: 'tag-rejected' },
-            { lat: 48.2115, lng: 16.4088, color: 'grey', title: '[skip] roomz Prater', addr: 'Rotundenplatz 1, 1020 Wien', details: 'до 500 — огромный', tag: 'Великоват', tagClass: 'tag-rejected' },
-            { lat: 48.1870, lng: 16.3560, color: 'grey', title: '[skip] Creative Cluster', addr: '1050 Wien', details: '150 театр — великоват', tag: 'Великоват', tagClass: 'tag-rejected' },
+            // ═══ ОТРАБОТАНО — серый (отказ / нет дат / не подходит) ═══
+            { lat: 48.1825, lng: 16.3786, color: 'grey', title: 'Hotel Zeitgeist — отказ', addr: 'Sonnwendgasse 15, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1858, lng: 16.3793, color: 'grey', title: 'Novotel Wien HBF — отказ', addr: 'Canettistrasse 6, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1824, lng: 16.3808, color: 'grey', title: 'Hotel Schani HBF — отказ', addr: 'Karl-Popper-Str. 22, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1796, lng: 16.3627, color: 'grey', title: 'Rainers Hotel — отказ', addr: 'Gudrunstrasse 184, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1924, lng: 16.3549, color: 'grey', title: 'Austria Trend Ananas — отказ', addr: 'Rechte Wienzeile 93-95, 1050 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.2144, lng: 16.3805, color: 'grey', title: 'Hotel Stefanie — отказ', addr: 'Taborstrasse 12, 1020 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1982, lng: 16.3376, color: 'grey', title: 'Mercure Westbahnhof — отказ', addr: 'Felberstrasse 4, 1150 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1828, lng: 16.3786, color: 'grey', title: 'A&O Hostel HBF — отказ', addr: 'Sonnwendgasse 11, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1830, lng: 16.3806, color: 'grey', title: 'novum Wien HBF — отказ', addr: 'Karl-Popper-Str. 16, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1858, lng: 16.4043, color: 'grey', title: 'Austria Trend Doppio — отказ', addr: 'Rennweg 99, 1030 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1943, lng: 16.4056, color: 'grey', title: 'BFI Wien — сайт не работает', addr: 'Alfred-Dallinger-Platz 1, 1030 Wien', details: 'Сайт bfi.wien недоступен', tag: 'Недоступен', tagClass: 'tag-rejected' },
+            { lat: 48.1730, lng: 16.3707, color: 'grey', title: 'VHS Favoriten — отказ', addr: 'Arthaberplatz 18, 1100 Wien', details: 'Не подошло', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.2190, lng: 16.3896, color: 'grey', title: 'VHS Praterstern — отказ', addr: 'Praterstern 1, 1020 Wien', details: 'Не подошло', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1901, lng: 16.3248, color: 'grey', title: 'VHS Rudolfsheim — отказ', addr: 'Schwendergasse 41, 1150 Wien', details: 'Не подошло', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1946, lng: 16.3377, color: 'grey', title: 'Studio Barada — не подходит', addr: 'Robert-Hamerling-Gasse 1, 1150 Wien', details: 'Танцстудия, паркет, нет стульев', tag: 'Не подходит', tagClass: 'tag-rejected' },
+            { lat: 48.1790, lng: 16.3860, color: 'grey', title: 'Gleis 21 — отказ', addr: 'Bloch-Bauer-Promenade 22, 1100 Wien', details: 'Даты заняты или отказ', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.1957, lng: 16.3560, color: 'grey', title: 'Spektakel — отказ', addr: 'Hamburgerstrasse 14, 1050 Wien', details: 'Осмотрен, не подошёл', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.2066, lng: 16.3905, color: 'grey', title: 'Das Packhaus — отказ', addr: 'Marxergasse 24, 1030 Wien', details: 'Коворкинг + ивент-площадка', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.2001, lng: 16.3888, color: 'grey', title: 'Pauluskirche — отказ', addr: 'Sebastianplatz 4, 1030 Wien', details: 'Евангелическая церковь', tag: 'Отработано', tagClass: 'tag-rejected' },
+            { lat: 48.2006, lng: 16.3872, color: 'grey', title: 'Magdas Hotel — отказ', addr: 'Ungargasse 38, 1030 Wien', details: 'Социальный отель', tag: 'Отработано', tagClass: 'tag-rejected' },
         ];
 
         // Add venue markers — regular first, then orange/negotiation ON TOP
@@ -262,19 +267,6 @@
         // Priority venues render last (on top) with higher z-index
         priorityVenues.forEach(v => {
             L.marker([v.lat, v.lng], { icon: markerIcon(v.color), zIndexOffset: 1000 })
-                .addTo(map)
-                .bindPopup(popupHtml(v.title, v.addr, v.details, v.tag, v.tagClass));
-        });
-
-        // ===== REJECTED / CHECKED VENUES (GREY) =====
-        const rejected = [
-            { lat: 48.2066, lng: 16.3905, color: 'grey', title: 'Das Packhaus — ОТКАЗ', addr: 'Marxergasse 24, 1030 Wien', details: 'Коворкинг + ивент-площадка<br><a href="https://daspackhaus.at" target="_blank">daspackhaus.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
-            { lat: 48.2001, lng: 16.3888, color: 'grey', title: 'Pauluskirche — ОТКАЗ', addr: 'Sebastianplatz 4, 1030 Wien', details: 'Евангелическая церковь<br><a href="https://pauluskirche.at" target="_blank">pauluskirche.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
-            { lat: 48.2006, lng: 16.3872, color: 'grey', title: 'Magdas Hotel — ОТКАЗ', addr: 'Ungargasse 38, 1030 Wien', details: 'Социальный отель<br><a href="https://magdas-hotel.at" target="_blank">magdas-hotel.at</a>', tag: 'ОТКАЗАЛИ', tagClass: 'tag-rejected' },
-        ];
-
-        rejected.forEach(v => {
-            L.marker([v.lat, v.lng], { icon: markerIcon(v.color) })
                 .addTo(map)
                 .bindPopup(popupHtml(v.title, v.addr, v.details, v.tag, v.tagClass));
         });
